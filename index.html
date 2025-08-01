@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hide + Seek Helper</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .card { min-width: 100px; }
+    .card-used { text-decoration: line-through; opacity: 0.6; }
+    .pending { outline: 2px dashed orange; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 p-4 min-h-screen flex flex-col">
+
+  <h1 class="text-2xl font-bold mb-4 text-center">🎴 Hide + Seek Helper</h1>
+
+  <!-- Category selector -->
+  <div class="mb-4">
+    <label for="category" class="block text-lg mb-1">Choose a category:</label>
+    <select id="category" class="w-full p-2 rounded border">
+      <option value="">-- Select --</option>
+      <option value="heads">Matching: Heads</option>
+      <option value="tails">Matching: Tails</option>
+      <option value="measuring">Measuring</option>
+      <option value="photo">Photo</option>
+      <option value="radar">Radar</option>
+    </select>
+  </div>
+
+  <!-- Draw area -->
+  <div id="draw-area" class="mb-4 hidden">
+    <p class="text-sm text-gray-600 mb-2">Drawn Cards (click to select):</p>
+    <div id="cards" class="flex flex-wrap gap-2"></div>
+    <button id="confirm-btn"
+      class="mt-3 w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
+      disabled>Confirm Selection</button>
+  </div>
+
+  <!-- Your deck -->
+  <div class="mb-6">
+    <h2 class="text-lg font-semibold mb-2">Your Deck (max <span id="deck-max">6</span>)</h2>
+    <div id="deck" class="flex flex-wrap gap-2"></div>
+  </div>
+
+  <!-- Used/discarded -->
+  <div class="mb-6">
+    <h2 class="text-lg font-semibold mb-2">Used / Discarded Cards</h2>
+    <div id="used-deck" class="flex flex-wrap gap-2"></div>
+  </div>
+
+  <!-- Admin Mode Button -->
+  <button id="admin-btn"
+    class="mt-auto bg-gray-800 text-white py-2 px-4 rounded">Admin Mode</button>
+
+  <!-- Admin Panel -->
+  <div id="admin-panel" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg w-full max-w-md p-6 relative">
+      <button id="admin-close" class="absolute top-2 right-2 text-gray-500 text-2xl">&times;</button>
+      <h3 class="text-xl font-bold mb-4">Admin Mode</h3>
+      <div class="mb-4">
+        <label class="block mb-1">Add Card (#1–95):</label>
+        <input id="admin-add-input" type="number" min="1" max="95"
+               class="w-full border p-2 rounded mb-2" placeholder="Card number">
+        <button id="admin-add-btn" class="w-full bg-green-600 text-white py-2 rounded">Add to Deck</button>
+      </div>
+      <p class="text-sm text-gray-600">Click any discarded card below to restore:</p>
+      <div id="admin-used" class="flex flex-wrap gap-2 mt-2"></div>
+    </div>
+  </div>
+
+  <!-- Curse modal -->
+  <div id="curse-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg w-full max-w-md p-6 relative">
+      <button id="modal-close" class="absolute top-2 right-2 text-gray-500 text-2xl">&times;</button>
+      <h3 id="curse-title" class="text-xl font-bold mb-2"></h3>
+      <pre id="curse-text" class="whitespace-pre-wrap text-sm mb-4 max-h-64 overflow-auto"></pre>
+      <button id="copy-curse" class="bg-green-600 text-white py-2 px-4 rounded">Copy Name + Text</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
