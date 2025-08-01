@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Elements
+    // linking ids
     const categorySelect = document.getElementById("category");
     const drawArea       = document.getElementById("draw-area");
     const cardsContainer = document.getElementById("cards");
@@ -13,31 +13,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminAddInput  = document.getElementById("admin-add-input");
     const adminAddBtn    = document.getElementById("admin-add-btn");
     const adminUsedDiv   = document.getElementById("admin-used");
+    const exportBtn      = document.getElementById("export-deck-btn");
+    const exportArea     = document.getElementById("export-area");
+    const importArea     = document.getElementById("import-area");
+    const importBtn      = document.getElementById("import-deck-btn");
     const modal          = document.getElementById("curse-modal");
     const curseTitle     = document.getElementById("curse-title");
     const curseText      = document.getElementById("curse-text");
     const copyCurseBtn   = document.getElementById("copy-curse");
     const modalClose     = document.getElementById("modal-close");
   
-    // State
+    // state
     let drawnCards = [], keepCount = 0, selected = [];
     let deck = [], used = [], maxDeck = 6;
   
-    // Power-ups mapping
+    // powerups mapping
     const POWERUPS = {
       62:"D1D2",63:"D1D2",64:"D1D2",65:"D1D2",
       66:"D2D3",67:"D2D3",68:"D2D3",69:"D2D3",
       70:"D1E1",71:"D1E1"
     };
   
-    // Full curses (70–93)
+    // all of the curses' data
     const CURSES = {
       70:{name:"Curse of The Zoologist",text:`Take a photo of a wild fish, bird, mammal, reptile, amphibian or bug. The seeker(s) must take a picture of a wild animal in the same category before  asking another question.\nCasting Cost: A photo of an animal`},
       71:{name:"Curse Of The Unguided Tourist",text:`Send the seeker(s) an unzoomed google Street View image from a street within 500ft (152m) of where they are now. The shot has to be parallel to the horizon and include at least one human-built structure other than a road. Without using the internet for research, they must find what you sent them in real life before they can use transportation or ask another question. They must send a picture the hiders for verification.\nCasting Cost: Seker(s) must be outside`},
       72:{name:"Curse Of The Endless Tumble",text:`Seekers Must roll a die at least 100ft (30m) and have it land on a 5 or a 6 before they can ask another question. The die must roll the full distance, unaided, using only the momentum from the initial throw and gravity to travel the 100ft (30m). If the seekers accidentally hit someone with a die you are awarded a [S10, M20, L30] minute bonus\nCasting Cost: Roll a die. If its 5 or 6 this card has no effect.`},
       73:{name:"Curse Of The Hidden Hangman",text:`Before asking another question or boarding another form of transportation, seeker(s) must be the hider(s) in game of hangman.\nCasting Cost: Discard 2 cards`},
       74:{name:"Curse Of The Overflowing Chalice",text:`For the next three questions, you may draw (not keep) an additional card when drawing from the hider deck\nCasting Cost: Discard a card`},
-      75:{name:"Curse Of The Mediocre Travel Agent",text:`Choose any publicly-accessible place within [S0.25, M0.25, L0.50]mi [S0.40, M0.40, 0.50]km of the seeker(s) current location. They cannot currently be on transit. They must go there, and spend at least [S5, M5, L10] minutes there, before asking another question. They must send you at least three photos of them enjoying their vacation, and procure an object to bring you as souvenir. If this souvenir is lost before they can get to you, you are awarded and extra [S30, M45, L60] minutes.\nCasting Cost:`},
+      75:{name:"Curse Of The Mediocre Travel Agent",text:`Choose any publicly-accessible place within [S0.25, M0.25, L0.50]mi [S0.40, M0.40, 0.50]km of the seeker(s) current location. They cannot currently be on transit. They must go there, and spend at least [S5, M5, L10] minutes there, before asking another question. They must send you at least three photos of them enjoying their vacation, and procure an object to bring you as souvenir. If this souvenir is lost before they can get to you, you are awarded and extra [S30, M45, L60] minutes.\nCasting Cost: `},
       76:{name:"Curse Of The Luxury Car",text:`Take a photo of a car. The seekers must take a photo of a more expensive car before asking another question.\nCasting Cost: A photo of a car`},
       77:{name:"Curse Of The U-Turn",text:`Seeker(s) must disembark their current mode of transportation at the next station (as long as that station is served by another form of transit in the next [S0.5, M0.5, L1] hours\nCasting Cost: Seekers must be heading the wrong way. (Their next station is further from you then they are.)`},
       78:{name:"Curse Of The Bridge Troll",text:`The seekers must ask their next question from under a bridge\nCasting Cost: Seekers Must be at least [S1, M5, L30]mi [S0.3, M1.5, L9.1]km from you`},
@@ -102,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
       c.textContent=getLabel(num);
       const btns=document.createElement("div"); btns.className="mt-2 flex gap-2";
   
-      // Discard
+      // discarding
       const d=document.createElement("button");
       d.textContent="Discard"; d.className="text-red-600 text-xs underline";
       d.onclick=()=>processCard(num,"discard");
@@ -135,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     function render(){
       deckDiv.innerHTML=""; usedDiv.innerHTML="";
-      deck.forEach(n=>deckDiv.appendChild(makeDeckCard(n)));
+      deck.forEach(n=> deckDiv.appendChild(makeDeckCard(n)));
       used.forEach(n=>{
         const u=document.createElement("div");
         u.className="card-used card border bg-white p-2 rounded text-sm";
@@ -143,9 +147,12 @@ document.addEventListener("DOMContentLoaded", () => {
         usedDiv.appendChild(u);
       });
       deckMaxSpan.textContent=maxDeck;
+      if(!adminPanel.classList.contains("hidden")){
+        renderAdminUsed();
+      }
     }
   
-    // Draw selection
+    // draw select
     categorySelect.onchange=()=>{
       const cat=categorySelect.value;
       if(!cat) return;
@@ -169,27 +176,23 @@ document.addEventListener("DOMContentLoaded", () => {
       render();
     };
   
-    // Use or Discard
+    // interacting w/cards
     function processCard(num, action){
-      // Remove original only after validating
       if(action==="use"){
-        // D1D2
         if(62<=num&&num<=65){
           const ans=prompt("Enter 1 other card to discard, e.g. \"23\":");
-          if(!ans){return;}
+          if(!ans) return;
           const pick=+ans.trim();
           if(!deck.includes(pick)||pick===num){
             alert("Invalid card. Aborting."); return;
           }
-          // proceed
           deck=deck.filter(x=>x!==num&&x!==pick);
           used.push(num,pick);
           drawRandom(2).forEach(n=>deck.push(n));
         }
-        // D2D3
         else if(66<=num&&num<=69){
           const ans=prompt("Enter 2 cards to discard, comma-separated, e.g. \"12,34\":");
-          if(!ans){return;}
+          if(!ans) return;
           const parts=ans.split(",").map(x=>+x.trim());
           if(parts.length!==2||parts.some(x=>!deck.includes(x)||x===num)){
             alert("Invalid format or cards. Aborting."); return;
@@ -198,19 +201,16 @@ document.addEventListener("DOMContentLoaded", () => {
           used.push(num,parts[0],parts[1]);
           drawRandom(3).forEach(n=>deck.push(n));
         }
-        // D1E1
         else if(70<=num&&num<=71){
           deck=deck.filter(x=>x!==num);
           used.push(num);
           maxDeck++;
         }
-        // Curses
         else if(72<=num&&num<=93){
           deck=deck.filter(x=>x!==num);
           used.push(num);
         } else return;
       }
-      // Discard
       else if(action==="discard"){
         deck=deck.filter(x=>x!==num);
         used.push(num);
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
       render();
     }
   
-    // Curse modal
+    // curse modal
     function showCurse(num){
       const c=CURSES[num];
       curseTitle.textContent=`#${num}: ${c.name}`;
@@ -228,31 +228,71 @@ document.addEventListener("DOMContentLoaded", () => {
     modalClose.onclick=()=>modal.classList.add("hidden");
     copyCurseBtn.onclick=()=>navigator.clipboard.writeText(`${curseTitle.textContent}\n\n${curseText.textContent}`);
   
-    // Admin
+    // admin mode
     adminBtn.onclick=()=>{
-      const pwd=prompt("Password?");
+      const pwd=prompt("Enter admin password:");
       if(pwd==="pah"){
-        adminUsedDiv.innerHTML="";
-        used.forEach(n=>{
-          const u=document.createElement("div");
-          u.className="card border bg-white p-2 rounded text-sm cursor-pointer";
-          u.textContent=getLabel(n);
-          u.onclick=()=>{
-            used=used.filter(x=>x!==n); deck.push(n); render(); u.remove();
-          };
-          adminUsedDiv.appendChild(u);
-        });
+        renderAdminUsed();
         adminPanel.classList.remove("hidden");
       } else alert("Wrong password");
     };
     adminClose.onclick=()=>adminPanel.classList.add("hidden");
+  
     adminAddBtn.onclick=()=>{
       const n=+adminAddInput.value;
       if(n>=1&&n<=95&&deck.length<maxDeck){
-        deck.push(n); render(); adminAddInput.value="";
+        deck.push(n);
+        render();
+        adminAddInput.value="";
       }
     };
   
+    // admin: render discarded with restore/delete
+    function renderAdminUsed(){
+      adminUsedDiv.innerHTML="";
+      used.forEach(n=>{
+        const u=document.createElement("div");
+        u.className="card border bg-white p-2 rounded text-sm cursor-pointer";
+        u.textContent=getLabel(n);
+        u.onclick=()=>{
+          used=used.filter(x=>x!==n);
+          deck.push(n);
+          render();
+          renderAdminUsed();
+        };
+        u.oncontextmenu=e=>{
+          e.preventDefault();
+          if(confirm(`Delete #${n} permanently?`)){
+            used=used.filter(x=>x!==n);
+            renderAdminUsed();
+          }
+        };
+        adminUsedDiv.appendChild(u);
+      });
+    }
+  
+    // share
+    exportBtn.onclick=()=>{
+      exportArea.value=JSON.stringify({deck,used});
+    };
+    importBtn.onclick=()=>{
+      let data;
+      try{
+        data=JSON.parse(importArea.value);
+        if(!Array.isArray(data.deck)||!Array.isArray(data.used)) throw 0;
+        if(![...data.deck,...data.used].every(x=>Number.isInteger(x)&&x>=1&&x<=95)) throw 0;
+      }catch{
+        alert("Invalid format. Use JSON {deck:[...],used:[...]}");
+        return;
+      }
+      deck=data.deck.slice();
+      used=data.used.slice();
+      render();
+      renderAdminUsed();
+      alert("Imported!");
+    };
+  
+    // first render
     render();
   });
   

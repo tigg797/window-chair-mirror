@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hide + Seek Helper</title>
+  <title>Hide+Seek assistant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .card { min-width: 100px; }
     .card-used { text-decoration: line-through; opacity: 0.6; }
-    .pending { outline: 2px dashed orange; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 p-4 min-h-screen flex flex-col">
 
-  <h1 class="text-2xl font-bold mb-4 text-center">🎴 Hide + Seek Helper</h1>
+  <h1 class="text-2xl font-bold mb-4 text-center"><strong>Hide+Seek</strong> Assistant</h1>
 
-  <!-- Category selector -->
+  <!-- category select -->
   <div class="mb-4">
     <label for="category" class="block text-lg mb-1">Choose a category:</label>
     <select id="category" class="w-full p-2 rounded border">
@@ -28,48 +27,71 @@
     </select>
   </div>
 
-  <!-- Draw area -->
+  <!-- draw popup -->
   <div id="draw-area" class="mb-4 hidden">
-    <p class="text-sm text-gray-600 mb-2">Drawn Cards (click to select):</p>
+    <p class="text-sm text-gray-600 mb-2">Drawn Cards (tap to select):</p>
     <div id="cards" class="flex flex-wrap gap-2"></div>
     <button id="confirm-btn"
       class="mt-3 w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
       disabled>Confirm Selection</button>
   </div>
 
-  <!-- Your deck -->
+  <!-- deck -->
   <div class="mb-6">
     <h2 class="text-lg font-semibold mb-2">Your Deck (max <span id="deck-max">6</span>)</h2>
     <div id="deck" class="flex flex-wrap gap-2"></div>
   </div>
 
-  <!-- Used/discarded -->
+  <!-- discard pile -->
   <div class="mb-6">
     <h2 class="text-lg font-semibold mb-2">Used / Discarded Cards</h2>
     <div id="used-deck" class="flex flex-wrap gap-2"></div>
   </div>
 
-  <!-- Admin Mode Button -->
+  <!-- admin mode button -->
   <button id="admin-btn"
     class="mt-auto bg-gray-800 text-white py-2 px-4 rounded">Admin Mode</button>
 
-  <!-- Admin Panel -->
+  <!-- admin panel -->
   <div id="admin-panel" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg w-full max-w-md p-6 relative">
+    <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4">
       <button id="admin-close" class="absolute top-2 right-2 text-gray-500 text-2xl">&times;</button>
-      <h3 class="text-xl font-bold mb-4">Admin Mode</h3>
-      <div class="mb-4">
+      <h3 class="text-xl font-bold">Admin Mode</h3>
+
+      <!-- add card -->
+      <div>
         <label class="block mb-1">Add Card (#1–95):</label>
         <input id="admin-add-input" type="number" min="1" max="95"
                class="w-full border p-2 rounded mb-2" placeholder="Card number">
         <button id="admin-add-btn" class="w-full bg-green-600 text-white py-2 rounded">Add to Deck</button>
       </div>
-      <p class="text-sm text-gray-600">Click any discarded card below to restore:</p>
-      <div id="admin-used" class="flex flex-wrap gap-2 mt-2"></div>
+
+      <!-- manage discarded -->
+      <div>
+        <p class="mb-1 text-sm">Discarded Cards:</p>
+        <div id="admin-used" class="flex flex-wrap gap-2 max-h-32 overflow-auto border p-2 rounded"></div>
+      </div>
+
+      <!-- Share exp. -->
+      <div>
+        <button id="export-deck-btn" class="w-full bg-blue-600 text-white py-2 rounded mb-2">
+          Export Deck & Discard
+        </button>
+        <textarea id="export-area" class="w-full border p-2 rounded h-20" readonly placeholder="Exported data appears here"></textarea>
+      </div>
+
+      <!-- Share imp. -->
+      <div>
+        <label class="block mb-1">Import Shared Deck:</label>
+        <textarea id="import-area" class="w-full border p-2 rounded h-20" placeholder="Paste shared data here"></textarea>
+        <button id="import-deck-btn" class="w-full bg-indigo-600 text-white py-2 rounded mt-2">
+          Import Deck & Discard
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Curse modal -->
+  <!-- curse modal -->
   <div id="curse-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg w-full max-w-md p-6 relative">
       <button id="modal-close" class="absolute top-2 right-2 text-gray-500 text-2xl">&times;</button>
